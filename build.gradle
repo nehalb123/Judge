@@ -1,0 +1,113 @@
+buildscript {
+    ext.fasterxml_version = '2.9.5'
+}
+
+plugins {
+    id "org.jetbrains.kotlin.jvm" version "1.2.51"
+    id 'org.springframework.boot' version '2.0.1.RELEASE'
+    id "jacoco"
+}
+
+apply plugin: 'idea'
+apply plugin: 'io.spring.dependency-management'
+
+apply from: "$rootDir/gradle/versioning.gradle"
+
+group = 'jalgoarena'
+description = """JAlgoArena Judge Service"""
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    compile.exclude module: "spring-boot-starter-tomcat"
+}
+
+jar {
+    baseName = 'jalgoarena-judge'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:Finchley.RELEASE'
+    }
+}
+
+dependencies {
+
+    compile 'com.google.guava:guava:18.0',
+            "com.fasterxml.jackson.core:jackson-databind:$fasterxml_version",
+            "com.fasterxml.jackson.core:jackson-core:$fasterxml_version",
+            "com.fasterxml.jackson.core:jackson-annotations:$fasterxml_version",
+            "com.fasterxml.jackson.module:jackson-module-kotlin:$fasterxml_version",
+            "org.springframework.boot:spring-boot-starter-webflux",
+            "org.springframework.boot:spring-boot-starter-actuator",
+            "org.springframework.kafka:spring-kafka",
+            "org.jetbrains.kotlin:kotlin-stdlib",
+            "org.jetbrains.kotlin:kotlin-reflect",
+            'net.logstash.logback:logstash-logback-encoder:5.1',
+            "org.apache.kafka:kafka-clients:1.1.0"
+
+    runtime "org.jetbrains.kotlin:kotlin-runtime"
+
+    testCompile 'junit:junit:4.12',
+            'pl.pragmatists:JUnitParams:1.0.5',
+            "org.springframework.kafka:spring-kafka-test",
+            "org.springframework.boot:spring-boot-starter-test",
+            'com.squareup.okhttp3:okhttp:3.4.2',
+            'com.nhaarman:mockito-kotlin-kt1.1:1.5.0',
+            'org.apache.kafka:kafka_2.11:1.1.0'
+}
+
+apply plugin: 'jacoco'
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+}
+
+check.dependsOn jacocoTestReport
+
+defaultTasks 'clean', 'bootJar'
+
+bootRun {
+    systemProperty 'sun.zip.disableMemoryMapping', 'true'
+}
+
+task stage {
+    dependsOn 'bootJar'
+}
+
+task releaseZip(type: Zip, dependsOn: 'bootJar') {
+    from('build/libs/') {
+        include('*.jar')
+    }
+    from 'run.sh'
+    from('build/classes/kotlin/main/com/jalgoarena/type') {
+        into('build/classes/kotlin/main/com/jalgoarena/type')
+        include('*.class')
+    }
+    archiveName "JAlgoArena-Judge-${version}.zip"
+    destinationDir(file('build/libs'))
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+task buildDockerImage(type: Exec, dependsOn: 'bootJar') {
+    commandLine 'docker',  'build', '-t', "jalgoarena/judge:${version}", '.'
+}
+
+task pushDockerImages(type: Exec, dependsOn: 'buildDockerImage') {
+    commandLine 'docker',  'push', "jalgoarena/judge:${version}"
+}
