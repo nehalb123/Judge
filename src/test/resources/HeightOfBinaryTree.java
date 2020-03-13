@@ -1,4 +1,4 @@
-import com.jalgoarena.type.TreeNode;
+import com.algocup.type.TreeNode;
 
 public class Solution {
 

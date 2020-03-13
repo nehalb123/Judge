@@ -1,6 +1,6 @@
 import java.util.*;
 
-import com.jalgoarena.type.*;
+import com.algocup.type.*;
 
 public class Solution {
     public ListNode mergeKLists(ArrayList<ListNode> lists) {

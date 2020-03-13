@@ -1,0 +1,99 @@
+package com.algocup.web
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.algocup.data.ProblemsRepository
+import com.algocup.domain.Submission
+import com.algocup.domain.JudgeResult
+import com.algocup.domain.SubmissionResult
+import com.algocup.judge.JudgeEngine
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.kafka.annotation.KafkaHandler
+import org.springframework.kafka.annotation.KafkaListener
+import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.support.SendResult
+import org.springframework.stereotype.Service
+import org.springframework.util.concurrent.ListenableFutureCallback
+
+@Service
+@KafkaListener(topics = ["submissionsToJudge"])
+class SubmissionsListener(
+        @Autowired private val problemsRepository: ProblemsRepository,
+        @Autowired private val judgeEngine: JudgeEngine,
+        @Autowired private val objectMapper: ObjectMapper
+) {
+
+    private val logger = LoggerFactory.getLogger(this.javaClass)
+
+    @Autowired
+    lateinit var template: KafkaTemplate<Int, String>
+
+    @KafkaHandler
+    fun judge(message: String): SubmissionResult {
+
+        val submission = objectMapper.readValue(message, Submission::class.java)
+        logger.info("Received submission [submissionId={}][status=WAITING]", submission.submissionId)
+
+        return judge(submission)
+    }
+
+    @KafkaHandler
+    fun judge(submission: Submission): SubmissionResult {
+
+        logger.info("Start checking submission [submissionId={}]", submission.submissionId)
+        val judgeResult = judgeEngine.judge(
+                problemsRepository.find(submission.problemId)!!,
+                submission
+        )
+
+        logger.info("Checking submission is done [submissionId={}][status={}]",
+                submission.submissionId,
+                judgeResult.statusCode)
+
+        return submitAndReturnResult(submission, judgeResult)
+    }
+
+    private fun submitAndReturnResult(submission: Submission, judgeResult: JudgeResult): SubmissionResult {
+
+        val submissionResult = SubmissionResult(
+                problemId = submission.problemId,
+                userId = submission.userId,
+                statusCode = judgeResult.statusCode,
+                sourceCode = submission.sourceCode,
+                elapsedTime = judgeResult.elapsedTime,
+                submissionId = submission.submissionId,
+                id = submission.id,
+                consumedMemory = judgeResult.consumedMemory,
+                errorMessage = judgeResult.errorMessage,
+                passedTestCases = judgeResult.testcaseResults.count { it },
+                failedTestCases = judgeResult.testcaseResults.count { !it },
+                submissionTime = submission.submissionTime,
+                token = submission.token
+        )
+
+        logger.info("Publishing submission result [submissionId={}][status={}]",
+                submissionResult.submissionId,
+                submissionResult.statusCode)
+
+        template.send("results", objectMapper.writeValueAsString(submissionResult))
+                .addCallback(SubmissionResultHandler(submissionResult.submissionId))
+
+        return submissionResult
+    }
+
+    class SubmissionResultHandler(
+            private val submissionId: String
+    ) : ListenableFutureCallback<SendResult<Int, String>> {
+
+        private val logger = LoggerFactory.getLogger(this.javaClass)
+
+        override fun onSuccess(result: SendResult<Int, String>?) {
+            logger.info("Published submission result [submissionId={}]", submissionId)
+        }
+
+        override fun onFailure(ex: Throwable?) {
+            logger.error("Error during publishing submission result [submissionId={}]", submissionId, ex)
+        }
+
+    }
+}

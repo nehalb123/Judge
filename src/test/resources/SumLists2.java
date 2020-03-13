@@ -1,4 +1,4 @@
-import com.jalgoarena.type.ListNode;
+import com.algocup.type.ListNode;
 
 public class Solution {
     class PartialSum {
