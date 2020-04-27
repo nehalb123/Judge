@@ -2,14 +2,8 @@ sudo: required
 language: Java
 notifications:
   email: nehal.borole@gmail.com
-services:
-  - docker
 jdk:
-  - oraclejdk8
-before_install:
-  - pip install --user codecov
-after_success:
-  - codecov
+  - openjdk8
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 cache:
