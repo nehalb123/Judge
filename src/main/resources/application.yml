@@ -12,7 +12,7 @@ jalgoarena:
 
 spring:
   kafka:
-    bootstrap-servers: ${BOOTSTRAP_SERVERS:192.168.0.8:8808}
+    bootstrap-servers: ${BOOTSTRAP_SERVERS:localhost:8808}
     consumer:
       group-id: ${KAFKA_CONSUMER_GROUP_ID:judge-agent}
     producer:
