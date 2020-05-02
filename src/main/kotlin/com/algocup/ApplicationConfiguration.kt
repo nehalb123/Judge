@@ -18,7 +18,7 @@ import org.springframework.web.client.RestTemplate
 @Configuration
 open class ApplicationConfiguration {
 
-    @Value("\${jalgoarena.judge.classpath:build/classes/kotlin/main}")
+    @Value("\${algocup.judge.classpath:build/classes/kotlin/main}")
     private lateinit var jalgoarenaJudgeClasspath: String
 
     @Bean

@@ -1,12 +1,12 @@
 FROM openjdk:8-alpine
 
-MAINTAINER Jacek Spolnik <jacek.spolnik@gmail.com>
+MAINTAINER Nehal Borole <nehal.borole@gmail.com>
 
 WORKDIR /app
 
-COPY build/libs/jalgoarena-judge-*.jar /app/
-COPY build/classes/kotlin/main/com/jalgoarena/type/ /app/build/classes/kotlin/main/com/jalgoarena/type/
+COPY build/libs/algocup-judge-*.jar /app/
+COPY build/classes/kotlin/main/com/algocup/type/ /app/build/classes/kotlin/main/com/algocup/type/
 
 EXPOSE 5008
 
-CMD java $JAVA_OPTS -jar /app/jalgoarena-judge-*.jar
+CMD java $JAVA_OPTS -jar /app/algocup-judge-*.jar

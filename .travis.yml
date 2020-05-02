@@ -2,8 +2,14 @@ sudo: required
 language: Java
 notifications:
   email: nehal.borole@gmail.com
+services:
+  - docker
 jdk:
   - openjdk8
+before_install:
+  - pip install --user codecov
+after_success:
+  - codecov
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 cache:
@@ -15,3 +21,16 @@ before_deploy:
   - git config --local user.email "nehal.borole@gmail.com"
   - git tag "$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)"
   - "./gradlew releaseZip"
+deploy:
+  - provider: releases
+    api_key:
+      secure: $GITHUB_TOKEN
+    file_glob: true
+    file: "./build/libs/Algocup-Judge-*.zip"
+    skip_cleanup: true
+    on:
+      tags: false
+  - provider: script
+    script: bash docker_push
+    on:
+      tags: false

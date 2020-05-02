@@ -13,7 +13,7 @@ apply plugin: 'io.spring.dependency-management'
 
 apply from: "$rootDir/gradle/versioning.gradle"
 
-group = 'jalgoarena'
+group = 'algocup'
 description = """AlgoCup Judge Service"""
 
 sourceCompatibility = 1.8
@@ -88,8 +88,8 @@ task releaseZip(type: Zip, dependsOn: 'bootJar') {
         include('*.jar')
     }
     from 'run.sh'
-    from('build/classes/kotlin/main/com/jalgoarena/type') {
-        into('build/classes/kotlin/main/com/jalgoarena/type')
+    from('build/classes/kotlin/main/com/algocup/type') {
+        into('build/classes/kotlin/main/com/algocup/type')
         include('*.class')
     }
     archiveName "Algocup-Judge-${version}.zip"
@@ -105,9 +105,9 @@ compileTestKotlin {
 }
 
 task buildDockerImage(type: Exec, dependsOn: 'bootJar') {
-    commandLine 'docker',  'build', '-t', "jalgoarena/judge:${version}", '.'
+    commandLine 'docker',  'build', '-t', "algocup/judge:${version}", '.'
 }
 
 task pushDockerImages(type: Exec, dependsOn: 'buildDockerImage') {
-    commandLine 'docker',  'push', "jalgoarena/judge:${version}"
+    commandLine 'docker',  'push', "algocup/judge:${version}"
 }

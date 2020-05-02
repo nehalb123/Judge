@@ -11,7 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 @Repository
 open class JsonProblemsRepository(
-        @Value("\${jalgoarena.problems.source:problems.json}")
+        @Value("\${algocup.problems.source:problems.json}")
         private val jalgoarenaProblemsSource: String = "problems.json"
 ) : ProblemsRepository {
 
