@@ -6,10 +6,7 @@ services:
   - docker
 jdk:
   - openjdk8
-before_install:
-  - pip install --user codecov
-after_success:
-  - codecov
+
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 cache:
@@ -23,8 +20,7 @@ before_deploy:
   - "./gradlew releaseZip"
 deploy:
   - provider: releases
-    api_key:
-      secure: $GITHUB_TOKEN
+    api_key: $GITHUB_TOKEN
     file_glob: true
     file: "./build/libs/Algocup-Judge-*.zip"
     skip_cleanup: true
