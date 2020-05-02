@@ -27,6 +27,6 @@ deploy:
     on:
       tags: false
   - provider: script
-      script: bash docker_push
-      on:
-        tags: false
+    script: bash docker_push
+    on:
+      tags: false
