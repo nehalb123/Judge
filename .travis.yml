@@ -26,7 +26,3 @@ deploy:
     skip_cleanup: true
     on:
       tags: false
-  - provider: script
-    script: bash docker_push
-    on:
-      tags: false
